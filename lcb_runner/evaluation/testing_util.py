@@ -1,28 +1,27 @@
 import ast
-import json
-import sys
 import faulthandler
+import json
 import platform
+
+# to run the solution files we're using a timing based approach
+import signal
+import sys
+import time
 
 # used for debugging to time steps
 from datetime import datetime
 
-# to run the solution files we're using a timing based approach
-import signal
-
-import numpy as np
+from enum import Enum
 
 from io import StringIO
-
-# used for testing the code that reads from input
-from unittest.mock import patch, mock_open
 
 # from pyext import RuntimeModule
 from types import ModuleType
 
-from enum import Enum
-from decimal import Decimal
-import time
+# used for testing the code that reads from input
+from unittest.mock import mock_open, patch
+
+import numpy as np
 
 import_string = "from string import *\nfrom re import *\nfrom datetime import *\nfrom collections import *\nfrom heapq import *\nfrom bisect import *\nfrom copy import *\nfrom math import *\nfrom random import *\nfrom statistics import *\nfrom itertools import *\nfrom functools import *\nfrom operator import *\nfrom io import *\nfrom sys import *\nfrom json import *\nfrom builtins import *\nfrom typing import *\nimport string\nimport re\nimport datetime\nimport collections\nimport heapq\nimport bisect\nimport copy\nimport math\nimport random\nimport statistics\nimport itertools\nimport functools\nimport operator\nimport io\nimport sys\nimport json\nsys.setrecursionlimit(50000)\n"
 
@@ -175,9 +174,9 @@ def compile_code(code: str, timeout: int):
     return compiled_sol
 
 
-def convert_line_to_decimals(line: str) -> tuple[bool, list[Decimal]]:
+def convert_line_to_decimals(line: str) -> tuple[bool, list[np.float64]]:
     try:
-        decimal_line = [Decimal(elem) for elem in line.split()]
+        decimal_line = [np.float64(elem) for elem in line.split()]
     except:
         return False, []
     return True, decimal_line
@@ -379,7 +378,11 @@ def grade_stdio(
                 all_results.append(-2)
                 return all_results, WA_send_args
 
-            if decimal_prediction_line == decimal_gtout_line:
+            if np.allclose(
+                decimal_gtout_line,
+                decimal_prediction_line,
+                rtol=0,
+            ) and len(decimal_gtout_line) == len(decimal_prediction_line):
                 continue
 
             all_results.append(-2)
